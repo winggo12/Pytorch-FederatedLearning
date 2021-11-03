@@ -22,13 +22,13 @@ test_loader = torch.utils.data.DataLoader(bank_test_dataset, batch_size=batch_si
 
 model = FcNet()
 #For Regression
-model = FcNetRegression()
+# model = FcNetRegression()
 params_to_update = model.parameters()
 
 decayRate = 0.96
 loss_func = nn.CrossEntropyLoss()
 #For Regression
-loss_func = nn.MSELoss()
+# loss_func = nn.MSELoss()
 optimizer = torch.optim.AdamW(params_to_update, lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01, amsgrad=False)
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=decayRate)
 
@@ -63,13 +63,12 @@ for epoch in range(epoches):
                 optimizer.step()
 
             #For Classification
-            # _, preds = torch.max(outputs, 1)
-            # _, ground_truth = torch.max(labels, 1)
+            _, preds = torch.max(outputs, 1)
+            _, ground_truth = torch.max(labels, 1)
 
             #For Regression
-            preds = torch.round(outputs)
-            # preds = outputs
-            ground_truth = labels
+            # preds = torch.round(outputs)
+            # ground_truth = labels
 
             status.running_loss += loss.item()
             status.running_loss += loss.item() * inputs.size(0)
@@ -82,7 +81,12 @@ for epoch in range(epoches):
                 loss = status.running_loss_per_itr / (1000 * batch_size)
                 status.running_corrects_per_itr = 0
                 status.running_loss_per_itr = 0
-                print("Stage: ", status.name ," Iteration:", status.iteration, " Acc: ", acc, " Loss: ", loss)
+                if status.name == 'test':
+                    print("----------------Test-----------------------")
+                    print("Stage: ", status.name ," Iteration:", status.iteration, " Acc: ", acc, " Loss: ", loss)
+                    print("-------------------------------------------")
+                else:
+                    print("Stage: ", status.name, " Iteration:", status.iteration, " Acc: ", acc, " Loss: ", loss)
 
             status.iteration += 1
 

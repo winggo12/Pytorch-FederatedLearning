@@ -37,7 +37,7 @@ class TheDataset(Dataset):
         self.Y_ = torch.tensor(y_one_hot_key)
 
         #For Regression
-        self.Y_ = torch.tensor(y, dtype=torch.float32)
+        # self.Y_ = torch.tensor(y, dtype=torch.float32)
 
     def __len__(self):
         return len(self.Y_)
