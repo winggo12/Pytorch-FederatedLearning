@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torchvision.models as models
 from torch.nn import functional
+from config import config
 
 class FcNet(nn.Module):
     def __init__(self):
@@ -13,7 +14,7 @@ class FcNet(nn.Module):
         # self.fc4 = nn.Linear(54, 36)
         # self.fc5 = nn.Linear(36, 18)
         # self.fc6 = nn.Linear(18, 10)
-        self.fc7 = nn.Linear(16, 10)
+        self.fc7 = nn.Linear(16, config.num_class)
 
         # For Regression
         # self.fc6 = nn.Linear(18, 1)

@@ -3,19 +3,20 @@ import torch
 import torch.nn as nn
 from model.modelFcNet import FcNet
 from model.modelFcNetRegression import FcNetRegression
+import numpy as np
+import sklearn
+from sklearn.metrics import plot_confusion_matrix
+from sklearn.metrics import confusion_matrix
+
+from config import config
 from datasetProcessing.dataset import TheDataset
 
 batch_size = 32
-epoches = 200
+epoches = 10
 iteration = 0
 
-running_loss = 0
-running_corrects = 0
-running_loss_per_itr = 0
-running_corrects_per_itr = 0
-
-bank_train_dataset = TheDataset("./data/BankChurners_normalized.csv", split_ratio=0.9, train_or_test='train')
-bank_test_dataset = TheDataset("./data/BankChurners_normalized.csv", split_ratio=0.9, train_or_test='test')
+bank_train_dataset = TheDataset(config.data_path, train_ratio=0.9, train_or_val='train')
+bank_test_dataset = TheDataset(config.data_path, train_ratio=0.9, train_or_val='test')
 
 train_loader = torch.utils.data.DataLoader(bank_train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = torch.utils.data.DataLoader(bank_test_dataset, batch_size=batch_size, shuffle=True)
@@ -41,6 +42,8 @@ class Status:
         self.running_corrects_per_itr = 0
         self.running_loss = 0
         self.running_loss_per_itr = 0
+        self.preds = np.asarray([])
+        self.ground_truth = np.asarray([])
 
 trainstatus = Status('train', dataloader=train_loader)
 teststatus = Status('test', dataloader=test_loader)
@@ -69,16 +72,19 @@ for epoch in range(epoches):
             #For Regression
             # preds = torch.round(outputs)
             # ground_truth = labels
+            np_preds, np_ground_truth = preds.numpy(), ground_truth.numpy()
+            status.preds = np.append(status.preds, np_preds)
+            status.ground_truth = np.append(status.ground_truth, np_ground_truth)
 
-            status.running_loss += loss.item()
+            # status.running_loss += loss.item()
             status.running_loss += loss.item() * inputs.size(0)
             status.running_loss_per_itr += loss.item() * inputs.size(0)
             status.running_corrects += torch.sum(preds.data == ground_truth.data)
             status.running_corrects_per_itr += torch.sum(preds.data == ground_truth.data)
 
-            if status.iteration % 1000 == 0 and status.iteration!=0:
-                acc = status.running_corrects_per_itr / (1000 * batch_size)
-                loss = status.running_loss_per_itr / (1000 * batch_size)
+            if status.iteration % 100 == 0 and status.iteration!=0:
+                acc = status.running_corrects_per_itr / (100 * batch_size)
+                loss = status.running_loss_per_itr / (100 * batch_size)
                 status.running_corrects_per_itr = 0
                 status.running_loss_per_itr = 0
                 if status.name == 'test':
@@ -87,16 +93,17 @@ for epoch in range(epoches):
                     print("-------------------------------------------")
                 else:
                     print("Stage: ", status.name, " Iteration:", status.iteration, " Acc: ", acc, " Loss: ", loss)
-
             status.iteration += 1
 
 #Result :
-# for status in [trainstatus, teststatus]:
-#     final_loss = status.running_loss/(status.iteration * batch_size)
-#     final_acc = status.running_corrects/(status.iteration * batch_size)
-#     print("______________________________")
-#     print("Final Stage: ", status.name ," Acc: ", final_loss, "  Loss: ", final_loss)
-
+for status in [trainstatus, teststatus]:
+    cm = confusion_matrix(status.ground_truth, status.preds)
+    per_class_acc = cm.diagonal() / cm.sum(axis=1)
+    print("-------", status.name, " result ------")
+    print("Per-Class Acc: ")
+    print(per_class_acc)
+    print("Confusion Matrix: ")
+    print(cm)
 
 # Save Model:
 saved_model = copy.deepcopy(model.state_dict())

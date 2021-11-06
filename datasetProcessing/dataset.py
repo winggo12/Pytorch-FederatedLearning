@@ -4,16 +4,35 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
+from config import config
+
+#Returning a numpy array of one-hot-key
+def ConvertToOneHotKey(y):
+    # For Classification : One Hot Key
+    # num_of_class = y.max() - y.min() + 1
+    num_of_class = config.num_class
+    one_hot_key = np.zeros(num_of_class)
+
+    y_one_hot_key = []
+    for element in y:
+        template = one_hot_key.copy().tolist()
+        id = element[0] - 1
+        template[id] = 1
+        y_one_hot_key.append(template)
+
+    y_one_hot_key = np.array(y_one_hot_key)
+
+    return y_one_hot_key
+
 class TheDataset(Dataset):
-    def __init__(self, file_path, train_or_test, split_ratio):
-        if split_ratio<=0 or split_ratio>1:
+    def __init__(self, file_path, train_or_val, train_ratio):
+        if train_ratio<=0 or train_ratio>1:
             raise NameError("Ratio is not in correct range")
         df = pd.read_csv(file_path)
-        print(df.head())
         row_num, col_num = df.shape[1], df.shape[0]
-        train_size = round( col_num*(split_ratio) )
+        train_size = round(col_num * (train_ratio))
         # Handling Input Data and GroundTruth
-        if train_or_test == 'train' or split_ratio >= 1:
+        if train_or_val == 'train' or train_ratio >= 1:
             x = df.iloc[0:train_size, 0:row_num-1].values
             y = df.iloc[0:train_size, row_num - 1:row_num].values
         else:
@@ -22,19 +41,7 @@ class TheDataset(Dataset):
 
         self.X_ = torch.tensor(x, dtype=torch.float32)
 
-        #For Classification : One Hot Key
-        num_of_class = y.max() - y.min() + 1
-        one_hot_key = np.zeros(num_of_class)
-
-        y_one_hot_key = []
-        for element in y:
-            template = one_hot_key.copy().tolist()
-            id = element[0]-1
-            template[id] = 1
-            y_one_hot_key.append(template)
-
-        y_one_hot_key = np.array(y_one_hot_key)
-        self.Y_ = torch.tensor(y_one_hot_key)
+        self.Y_ = torch.tensor(ConvertToOneHotKey(y))
 
         #For Regression
         # self.Y_ = torch.tensor(y, dtype=torch.float32)
