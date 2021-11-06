@@ -20,7 +20,7 @@ def local_trainer(dataset, model, global_round, local_epoch, batch_size):
             optimizer.step()
             _, preds = torch.max(outputs, 1)
             _, ground_truth = torch.max(labels, 1)
-            running_loss += loss.item()
+            # running_loss += loss.item()
             running_loss += loss.item() * inputs.size(0)
             running_loss_per_itr += loss.item() * inputs.size(0)
             running_corrects += torch.sum(preds.data == ground_truth.data)
@@ -63,7 +63,7 @@ def inference(dataset, model, batch_size):
         iteration += 1
 
     final_acc = running_corrects/(iteration*batch_size)
-    final_loss = running_loss / (iteration)
+    final_loss = running_loss / (iteration*batch_size)
 
 
     return final_acc, final_loss

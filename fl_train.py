@@ -24,7 +24,7 @@ def average_weights(w):
     return w_avg
 
 if __name__ == '__main__':
-    alpha = 3
+    alpha = 300
     user_num = 3
     global_rounds = 100
     local_epochs = 5
