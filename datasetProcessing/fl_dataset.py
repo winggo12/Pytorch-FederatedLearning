@@ -70,6 +70,8 @@ class DatasetSplitByDirichletPartition():
         #the data to users and put them into dict
         #label_id_dict_of_users : eg {0: {0:[1],1:[4]},1: {0: [2,3],1:[5,6]}}
         partitions = np.random.dirichlet(np.repeat(alpha, user_num))
+        print("------Data Distribution for Users------")
+        print(partitions)
         label_id_dict_of_users = {}
         label_id_dict_of_user = {}
         user_id = 0

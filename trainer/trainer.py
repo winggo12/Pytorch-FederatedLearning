@@ -10,6 +10,7 @@ def local_trainer(dataset, model, global_round, local_epoch, batch_size):
     loss_func = nn.CrossEntropyLoss()
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    print("_________________Local Trainer_________________________")
     for epoch in range(local_epoch):
         for inputs, labels in dataloader:
             optimizer.zero_grad()

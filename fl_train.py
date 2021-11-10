@@ -24,10 +24,10 @@ def average_weights(w):
     return w_avg
 
 if __name__ == '__main__':
-    alpha = 300
-    user_num = 3
-    global_rounds = 100
-    local_epochs = 5
+    alpha = 100
+    user_num = 5
+    global_rounds = 20
+    local_epochs = 10
     batch_size = 32
     spliter = DatasetSplitByDirichletPartition(file_path=config.data_path,
                                                alpha=alpha,
@@ -56,4 +56,6 @@ if __name__ == '__main__':
         test_acc, test_loss = inference(dataset=dataset_dict[user_index]['test'],
                                         model=global_model,
                                         batch_size=batch_size)
+        print("_________________Global Trainer_________________________")
         print('Global Round :{}, the global accuracy is {:.3}%, and the global loss is {:.3}.'.format(round_idx, 100 * test_acc, test_loss))
+        print("__________________________________________")
