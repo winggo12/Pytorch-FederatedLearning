@@ -1,5 +1,6 @@
 from __future__ import print_function
 import pandas as pd
+import math
 import numpy as np
 from sklearn.utils import shuffle
 import torch
@@ -29,6 +30,10 @@ class TheDataset(Dataset):
     def __init__(self, in_tensor, out_tensor):
         self.X_ = in_tensor
         self.Y_ = out_tensor
+
+    def get_dataset_size(self):
+        return self.X_.shape[0]
+
     def __len__(self):
         return len(self.Y_)
     def __getitem__(self , idx):
@@ -43,7 +48,8 @@ class DatasetSplitByDirichletPartition():
             raise NameError("Ratio is not in correct range")
         df = pd.read_csv(file_path)
         df_new = df.sort_values(by=['CreditLevel'])
-
+        row_num, col_num = df.shape[1], df.shape[0]
+        self.__dataset_size = col_num
         #Get the number of labels and create a dictionary
         #that stores such info
         #e.g. {0: 100, 1:200}
@@ -54,6 +60,7 @@ class DatasetSplitByDirichletPartition():
             label_num_dict[label] = count
 
         label_id_dict = {}
+        label_sizes = []
         count = 0
 
         #Get the id of all data and store them
@@ -65,13 +72,31 @@ class DatasetSplitByDirichletPartition():
                 id_list.append(count)
                 count += 1
             label_id_dict[k] = id_list
+            label_sizes.append(len(id_list))
+
+        #Find the minimum size of data of a
+        #certain label
+        min_size = min(label_sizes)
+        min_partition = 1 / min_size
 
         #Using dirichlet distribution to distribute
         #the data to users and put them into dict
         #label_id_dict_of_users : eg {0: {0:[1],1:[4]},1: {0: [2,3],1:[5,6]}}
-        partitions = np.random.dirichlet(np.repeat(alpha, user_num))
-        print("------Data Distribution for Users------")
-        print(partitions)
+        #Keeps getting distribution until each partition is not too small
+        status = [ False ]
+        while False in status:
+            status = []
+            partitions = np.random.dirichlet(np.repeat(alpha, user_num))
+            # print(partitions)
+            for partition in partitions:
+                if partition < min_partition:
+                    status.append(False)
+                else:
+                    status.append(True)
+
+        self.__partitions = partitions
+        # print("------Data Distribution for Users------")
+        # print(partitions)
         label_id_dict_of_users = {}
         label_id_dict_of_user = {}
         user_id = 0
@@ -121,6 +146,12 @@ class DatasetSplitByDirichletPartition():
 
     def get_dataset_dict(self):
         return self.dataloader_dict
+
+    def get_partitions(self):
+        return self.__partitions
+
+    def get_complete_dataset_size(self):
+        return self.__dataset_size
 
 if __name__ == '__main__':
     file_path = '../data/BankChurners_normalized_standardized.csv'

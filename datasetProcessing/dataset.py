@@ -31,6 +31,7 @@ class TheDataset(Dataset):
         df = pd.read_csv(file_path)
         row_num, col_num = df.shape[1], df.shape[0]
         train_size = round(col_num * (train_ratio))
+        self.train_size = train_size
         # Handling Input Data and GroundTruth
         if train_or_val == 'train' or train_ratio >= 1:
             x = df.iloc[0:train_size, 0:row_num-1].values
