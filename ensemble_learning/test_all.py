@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from others.sklearn_utils import load_model , read_acc_result_txt, display_result
+from ensemble_learning.sklearn_utils import load_model , read_acc_result_txt, display_result
 
 X_train = pd.read_csv('../data/X_train.csv')
 X_test = pd.read_csv('../data/X_test.csv')

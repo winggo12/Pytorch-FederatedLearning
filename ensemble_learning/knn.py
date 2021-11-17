@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
-from others.sklearn_utils import display_result, save_model, save_acc_result_txt
+from ensemble_learning.sklearn_utils import display_result, save_model, save_acc_result_txt
 
 def knn_train(X_train, X_test, y_train, y_test):
     # define model
