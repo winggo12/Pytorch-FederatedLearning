@@ -27,7 +27,7 @@ knn = load_model(model_path='knn.sav')
 knn_test_acc = read_acc_result_txt('knn.txt')
 knn_result = knn.predict(X_test)
 acc_result_dict['knn'] = [knn_test_acc, knn_result]
-display_result(test_labels, knn_result)
+# display_result(test_labels, knn_result)
 
 lda = load_model(model_path='lda.sav')
 lda_test_acc = read_acc_result_txt('lda.txt')
@@ -35,8 +35,7 @@ for i in range(len(lda_test_acc)):
     lda_test_acc[i] = lda_test_acc[i]*0.2
 lda_result = lda.predict(X_test)
 acc_result_dict['lda'] = [lda_test_acc, lda_result]
-
-display_result(test_labels, lda_result)
+# display_result(test_labels, lda_result)
 
 zeros = np.zeros(shape=(10))
 
@@ -47,8 +46,9 @@ for i in range(col_num):
     for k, v in acc_result_dict.items():
         acc , result = v[0], v[1]
         label = result[i]
-        index = label -1
+        index = label - 1
         tmp[index] += acc[index]
+        # tmp[index] += 1
     final_scores.append(tmp)
 
 test_prediction = []

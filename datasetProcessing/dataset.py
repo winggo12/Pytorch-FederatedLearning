@@ -56,3 +56,23 @@ class TheDataset(Dataset):
         except Exception as e:
             print("Error Reading ", e)
 
+class TheDatasetByDataframe(Dataset):
+    def __init__(self, input_df, label_df):
+        x = input_df.values
+        y = label_df.values
+
+        self.X_ = torch.tensor(x, dtype=torch.float32)
+
+        self.Y_ = torch.tensor(ConvertToOneHotKey(y))
+
+        #For Regression
+        # self.Y_ = torch.tensor(y, dtype=torch.float32)
+
+    def __len__(self):
+        return len(self.Y_)
+
+    def __getitem__(self , idx):
+        try:
+            return self.X_[idx] , self.Y_[idx]
+        except Exception as e:
+            print("Error Reading ", e)
