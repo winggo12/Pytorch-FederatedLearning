@@ -32,7 +32,7 @@ def weighted_average_weights(w, partitions):
     return w_avg
 
 def train(log = True):
-    alpha = 1000
+    alpha = 0.1
     user_num = 5
     global_rounds = 10
     local_epochs = 5

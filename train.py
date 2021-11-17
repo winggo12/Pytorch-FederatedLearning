@@ -12,7 +12,7 @@ from config import config
 from datasetProcessing.dataset import TheDataset
 
 batch_size = 32
-epoches = 10
+epoches = 30
 iteration = 0
 
 bank_train_dataset = TheDataset(config.data_path, train_ratio=0.9, train_or_val='train')
