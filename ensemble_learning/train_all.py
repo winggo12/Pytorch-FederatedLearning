@@ -13,7 +13,7 @@ df_ts = pd.read_csv('../data/BankChurners_normalized_standardized.csv')
 inputs = df_ts.iloc[0:,0:10]
 labels = df_ts.iloc[0:,10:11]
 
-X_train, X_test, y_train, y_test = train_test_split(inputs, labels, test_size=0.2,random_state=0)
+X_train, X_test, y_train, y_test = train_test_split(inputs, labels, test_size=0.3,random_state=0)
 
 X_train.to_csv('../data/X_train.csv', index=False)
 X_test.to_csv('../data/X_test.csv', index=False)
