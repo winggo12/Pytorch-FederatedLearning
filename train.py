@@ -7,7 +7,7 @@ import numpy as np
 from ensemble_learning.sklearn_utils import save_acc_result_txt
 import sklearn
 from sklearn.metrics import plot_confusion_matrix
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, accuracy_score
 
 from config import config
 from datasetProcessing.dataset import TheDataset
@@ -94,10 +94,12 @@ def train_nn(model_path, acc_path, train_loader, test_loader):
 
     #Result :
     for status in [trainstatus, teststatus]:
+        acc = accuracy_score(status.ground_truth, status.preds)
         cm = confusion_matrix(status.ground_truth, status.preds)
         per_class_acc = cm.diagonal() / cm.sum(axis=1)
         if(status.name == 'test'): save_acc_result_txt(filename=acc_path, acc_list=per_class_acc)
         print("-------", status.name, " result ------")
+        print("Acc: ", acc)
         print("Per-Class Acc: ")
         print(per_class_acc)
         print("Confusion Matrix: ")
