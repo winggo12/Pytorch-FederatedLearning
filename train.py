@@ -1,7 +1,7 @@
 import copy
 import torch
 import torch.nn as nn
-from model.modelFcNet import FcNet
+from model.modelFcNet import FcNet, DeeperFcNet
 from model.modelFcNetRegression import FcNetRegression
 import numpy as np
 from ensemble_learning.sklearn_utils import save_acc_result_txt
@@ -30,14 +30,12 @@ class Status:
 
 def train_nn(model_path, acc_path, train_loader, test_loader):
     model = FcNet()
-    # For Regression
-    # model = FcNetRegression()
+    # model = DeeperFcNet()
     params_to_update = model.parameters()
 
     decayRate = 0.96
     loss_func = nn.CrossEntropyLoss()
-    # For Regression
-    # loss_func = nn.MSELoss()
+
     optimizer = torch.optim.AdamW(params_to_update, lr=0.01, betas=(0.9, 0.999), eps=1e-08, weight_decay=0.01,
                                   amsgrad=False)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=decayRate)
@@ -73,7 +71,6 @@ def train_nn(model_path, acc_path, train_loader, test_loader):
                 status.preds = np.append(status.preds, np_preds)
                 status.ground_truth = np.append(status.ground_truth, np_ground_truth)
 
-                # status.running_loss += loss.item()
                 status.running_loss += loss.item() * inputs.size(0)
                 status.running_loss_per_itr += loss.item() * inputs.size(0)
                 status.running_corrects += torch.sum(preds.data == ground_truth.data)
@@ -110,8 +107,8 @@ def train_nn(model_path, acc_path, train_loader, test_loader):
     torch.save(saved_model, model_path)
 
 if __name__ == '__main__':
-    bank_train_dataset = TheDataset(config.data_path, train_ratio=0.9, train_or_val='train')
-    bank_test_dataset = TheDataset(config.data_path, train_ratio=0.9, train_or_val='test')
+    bank_train_dataset = TheDataset(config.data_path, train_ratio=0.7, train_or_val='train')
+    bank_test_dataset = TheDataset(config.data_path, train_ratio=0.7, train_or_val='test')
     train_loader = torch.utils.data.DataLoader(bank_train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = torch.utils.data.DataLoader(bank_test_dataset, batch_size=batch_size, shuffle=True)
     train_nn(model_path="./saved/model.pth", acc_path="./saved/model.txt",
