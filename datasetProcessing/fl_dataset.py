@@ -83,33 +83,40 @@ class DatasetSplitByDirichletPartition():
         #the data to users and put them into dict
         #label_id_dict_of_users : eg {0: {0:[1],1:[4]},1: {0: [2,3],1:[5,6]}}
         #Keeps getting distribution until each partition is not too small
-        status = [ False ]
-        while False in status:
-            status = []
-            partitions = np.random.dirichlet(np.repeat(alpha, user_num))
-            # print(partitions)
-            for partition in partitions:
-                if partition < min_partition:
-                    status.append(False)
-                else:
-                    status.append(True)
+        # status = [ False ]
+        # while False in status:
+        #     status = []
+        #     partitions = np.random.dirichlet(np.repeat(alpha, user_num))
+        #     # print(partitions)
+        #     for partition in partitions:
+        #         if partition < min_partition:
+        #             status.append(False)
+        #         else:
+        #             status.append(True)
 
-        self.__partitions = partitions
+        label_partition_dict = {}
+        for user in range(user_num):
+            for label_index in range(len(labels)):
+                label = label_index+1
+                label_partition_dict[label] = np.random.dirichlet(np.repeat(alpha, user_num))
+
+
+        self.__label_partition_dict = label_partition_dict
         # print("------Data Distribution for Users------")
         # print(partitions)
         label_id_dict_of_users = {}
         label_id_dict_of_user = {}
-        user_id = 0
-        for partition in partitions:
-            for k, v in label_num_dict.items():
-                num = v * partition
-                id_list = [label_id_dict[k].pop(0) for idx in range(int(num))]
-                label_id_dict_of_user[k] = id_list
+        # user_id = 0
+        for user_id in range(user_num):
+            for label, num in label_num_dict.items():
+                number = num * label_partition_dict[label][user_id]
+                id_list = [label_id_dict[label].pop(0) for idx in range(int(number))]
+                label_id_dict_of_user[label] = id_list
 
             # List of label_id_dict for the users
             label_id_dict_of_users[user_id] = label_id_dict_of_user
             label_id_dict_of_user = {}
-            user_id += 1
+            # user_id += 1
 
         #Get the data with the index id of different classes
         dfs = []
@@ -144,11 +151,23 @@ class DatasetSplitByDirichletPartition():
 
         self.dataloader_dict = dataloader_dict
 
+    def get_train_dataset_proportions(self):
+        dataset_proportions = []
+        train_dataset_total_num = 0
+        for i in range(len(self.dataloader_dict)):
+            train_dataset_total_num += len(self.dataloader_dict[i]['train'])
+
+        for i in range(len(self.dataloader_dict)):
+            proportion = len(self.dataloader_dict[i]['train'])/train_dataset_total_num
+            dataset_proportions.append(proportion)
+
+        return dataset_proportions
+
     def get_dataset_dict(self):
         return self.dataloader_dict
 
-    def get_partitions(self):
-        return self.__partitions
+    def get_label_partition_dict(self):
+        return self.__label_partition_dict
 
     def get_complete_dataset_size(self):
         return self.__dataset_size
@@ -160,5 +179,6 @@ if __name__ == '__main__':
                                                user_num=2,
                                                train_ratio=.8)
     dataset_dict = spliter.get_dataset_dict()
+    proportions = spliter.get_train_dataset_proportions()
     print("End")
 

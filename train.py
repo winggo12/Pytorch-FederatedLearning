@@ -47,7 +47,7 @@ def train_nn(model_path, acc_path, train_loader, test_loader):
 
     for epoch in range(epoches):
         for status in [trainstatus, teststatus]:
-
+            status.preds, status.ground_truth = np.asarray([]), np.asarray([])
             if status.name == 'train':
                 model.train()
             else:
