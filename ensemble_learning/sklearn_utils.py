@@ -2,18 +2,23 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
 import pickle
+import warnings
+warnings.filterwarnings("ignore")
 
-def display_result(labels, predictions):
+def display_result(labels, predictions,log=True):
     acc = accuracy_score(labels, predictions)
     cm = confusion_matrix(labels, predictions)
     cr = classification_report(labels, predictions)
     per_class_acc = cm.diagonal() / cm.sum(axis=1)
-    print("------- result ------")
-    print("Acc: ", acc)
-    print("Per-Class Acc: ")
-    print(per_class_acc)
-    print("Report: ")
-    print(cr)
+    if log == True:
+        print("------- result ------")
+        print("Acc: ", acc)
+        print("Per-Class Acc: ")
+        print(per_class_acc)
+        print("Report: ")
+        print(cr)
+        print("Acc: ", acc)
+        print("Per-Class Acc: ")
     # print("Confusion Matrix: ")
     # print(cm)
 

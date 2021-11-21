@@ -4,7 +4,7 @@ import torch.nn as nn
 from model.modelFcNet import FcNet, DeeperFcNet
 from model.modelFcNetRegression import FcNetRegression
 import numpy as np
-from ensemble_learning.sklearn_utils import save_acc_result_txt
+from ensemble_learning.sklearn_utils import save_acc_result_txt, display_result
 import sklearn
 from sklearn.metrics import plot_confusion_matrix
 from sklearn.metrics import confusion_matrix, accuracy_score

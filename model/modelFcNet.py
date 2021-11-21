@@ -12,11 +12,6 @@ class FcNet(nn.Module):
         self.fc7 = nn.Linear(16, config.num_class)
         self.dropout = nn.Dropout(0.25)
 
-        nn.init.xavier_uniform_(self.fc1.weight)
-        nn.init.zeros_(self.fc1.bias)
-        nn.init.xavier_uniform_(self.fc7.weight)
-        nn.init.zeros_(self.fc7.bias)
-
     def forward(self,x):
         x = functional.leaky_relu(self.fc1(x))
         x = self.dropout(x)
