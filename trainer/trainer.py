@@ -13,7 +13,7 @@ def local_trainer(dataset, model, global_round, local_epoch, batch_size, log=Tru
     model.train()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     dataset_size = dataset.X_.shape[0]
-    report_iterations = int( int(dataset_size/batch_size)*local_epoch  * 0.85)
+    report_iterations = int( int(dataset_size/batch_size)*local_epoch  * 0.99)
     test_preds, test_ground_truth = np.asarray([]), np.asarray([])
 
     for epoch in range(local_epoch):

@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from model.modelFcNet import FcNet
 from model.modelFcNetRegression import FcNetRegression, FCNetRegressionThreshold
-from datasetProcessing.dataset import TheDataset
+from dataset_processing.dataset import TheDataset
 
 
 batch_size = 32
@@ -15,10 +15,10 @@ running_corrects = 0
 running_loss_per_itr = 0
 running_corrects_per_itr = 0
 
-bank_dataset = TheDataset("./data/BankChurners_normalized.csv")
+bank_dataset = TheDataset("../data/BankChurners_normalized.csv")
 train_loader = torch.utils.data.DataLoader(bank_dataset, batch_size=batch_size, shuffle=True)
 
-model_path = "./saved/model_regression.pth"
+model_path = "../saved/model_regression.pth"
 model = FCNetRegressionThreshold()
 model.fcnetregression.load_state_dict(torch.load(model_path))
 

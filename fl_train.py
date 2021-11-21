@@ -9,7 +9,7 @@ from sklearn.metrics import plot_confusion_matrix
 from sklearn.metrics import confusion_matrix
 
 from config import config
-from datasetProcessing.fl_dataset import DatasetSplitByDirichletPartition
+from dataset_processing.fl_dataset import DatasetSplitByDirichletPartition
 from model.modelFcNet import FcNet
 from model.modelFcNetRegression import FcNetRegression
 from trainer.trainer import local_trainer, inference

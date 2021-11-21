@@ -1,9 +1,20 @@
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import classification_report
+import matplotlib.pyplot as plt
 import pickle
 import warnings
 warnings.filterwarnings("ignore")
+
+def plot_cm(model_name, cm):
+    for matrix in cm:
+        fig = plt.figure()
+        plt.matshow(cm)
+        plt.title('Confusion Matrix of '+model_name)
+        plt.colorbar()
+        plt.ylabel('True Label')
+        plt.xlabel('Predicated Label')
+        plt.savefig('Confusion Matrix of ' +model_name+ '.jpg')
 
 def display_result(labels, predictions,log=True):
     acc = accuracy_score(labels, predictions)

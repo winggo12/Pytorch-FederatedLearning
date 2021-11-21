@@ -6,7 +6,7 @@ from knn import knn_train
 from lda import lda_train
 from xgb import xgbc_train
 from train import train_nn
-from datasetProcessing.dataset import TheDatasetByDataframe
+from dataset_processing.dataset import TheDatasetByDataframe
 
 df_ts = pd.read_csv('../data/BankChurners_normalized_standardized.csv')
 
@@ -31,7 +31,7 @@ bank_train_dataset = TheDatasetByDataframe(input_df=X_train, label_df=y_train)
 bank_test_dataset = TheDatasetByDataframe(input_df=X_test, label_df=y_test)
 train_loader = torch.utils.data.DataLoader(bank_train_dataset, batch_size=32, shuffle=True)
 test_loader = torch.utils.data.DataLoader(bank_test_dataset, batch_size=32, shuffle=True)
-train_nn(model_path="model.pth", acc_path="model.txt",
-train_loader=train_loader, test_loader=test_loader)
+train_nn(model_save_path="model.pth", acc_save_path="model.txt",
+         train_loader=train_loader, test_loader=test_loader)
 
 

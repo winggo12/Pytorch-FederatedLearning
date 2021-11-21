@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import torch
-from ensemble_learning.sklearn_utils import load_model , read_acc_result_txt, display_result
-from datasetProcessing.dataset import TheDataset, TheDatasetByDataframe
+from ensemble_learning.sklearn_utils import load_model , read_acc_result_txt, display_result, plot_cm
+from dataset_processing.dataset import TheDataset, TheDatasetByDataframe
 from inference import inference_nn_by_df
 
 X_train = pd.read_csv('../data/X_train.csv')
@@ -78,8 +78,11 @@ display_result(test_labels, knn_result)
 print("LDA")
 display_result(test_labels, lda_result)
 print("Neural Network")
-display_result(test_labels, nn_result)
+_,_,cm,_ = display_result(test_labels, nn_result)
+plot_cm(model_name="FcNet", cm= cm) ##confusion matrix
 print("Ensemble Learning")
-display_result(test_labels, ensemblelearning_result)
+_,_,cm,_=display_result(test_labels, ensemblelearning_result)
+plot_cm(model_name="Ensemble Learning", cm= cm) ##confusion matrix
+
 
 

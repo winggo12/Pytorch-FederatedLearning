@@ -4,7 +4,7 @@ import torch.nn as nn
 from model.modelFcNet import FcNet
 from model.modelFcNet import FcNet
 import numpy as np
-from datasetProcessing.dataset import TheDataset, ConvertToOneHotKey
+from dataset_processing.dataset import TheDataset, ConvertToOneHotKey
 from sklearn.metrics import confusion_matrix
 
 batch_size = 32
