@@ -67,8 +67,8 @@ def plot_cm(model_name, cm):
         plt.savefig('Confusion Matrix of ' +model_name+ '.jpg')
 
 def train_nn(model_save_path, acc_save_path, train_loader, test_loader):
-    # model = FcNet()
-    model = DeeperFcNet()
+    model = FcNet()
+    # model = DeeperFcNet()
     params_to_update = model.parameters()
 
     decayRate = 0.96

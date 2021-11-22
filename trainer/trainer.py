@@ -78,10 +78,10 @@ def inference(dataset, model, batch_size, log=True):
         test_ground_truth = np.append(test_ground_truth, ground_truth.numpy())
         iteration += 1
 
-    final_acc, per_class_acc, cm, cr = display_result(labels=test_ground_truth,
+    acc, per_class_acc, cm, cr = display_result(labels=test_ground_truth,
                                                 predictions=test_preds,
                                                 log=False)
-    # final_acc = running_corrects/(dataset.get_dataset_size())
+    final_acc = running_corrects/(dataset.get_dataset_size())
     final_loss = running_loss / (dataset.get_dataset_size())
 
     return final_acc, final_loss, per_class_acc

@@ -30,9 +30,7 @@ class DeeperFcNet(nn.Module):
         self.fc6 = nn.Linear(64, 32)
         self.fc7 = nn.Linear(32, 16)
         self.fc8 = nn.Linear(16, 10)
-
         self.dropout = nn.Dropout(0.2)
-
 
     def forward(self,x):
         x = functional.leaky_relu(self.fc1(x))

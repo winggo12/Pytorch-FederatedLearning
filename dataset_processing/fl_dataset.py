@@ -5,7 +5,6 @@ import numpy as np
 from sklearn.utils import shuffle
 import torch
 from torch.utils.data import Dataset
-
 from config import config
 
 #Returning a numpy array of one-hot-key
@@ -82,17 +81,6 @@ class DatasetSplitByDirichletPartition():
         #Using dirichlet distribution to distribute
         #the data to users and put them into dict
         #label_id_dict_of_users : eg {0: {0:[1],1:[4]},1: {0: [2,3],1:[5,6]}}
-        #Keeps getting distribution until each partition is not too small
-        # status = [ False ]
-        # while False in status:
-        #     status = []
-        #     partitions = np.random.dirichlet(np.repeat(alpha, user_num))
-        #     # print(partitions)
-        #     for partition in partitions:
-        #         if partition < min_partition:
-        #             status.append(False)
-        #         else:
-        #             status.append(True)
 
         label_partition_dict = {}
         for user in range(user_num):
@@ -100,10 +88,7 @@ class DatasetSplitByDirichletPartition():
                 label = label_index+1
                 label_partition_dict[label] = np.random.dirichlet(np.repeat(alpha, user_num))
 
-
         self.__label_partition_dict = label_partition_dict
-        # print("------Data Distribution for Users------")
-        # print(partitions)
         label_id_dict_of_users = {}
         label_id_dict_of_user = {}
         # user_id = 0
@@ -131,6 +116,7 @@ class DatasetSplitByDirichletPartition():
         #for every user
         #e.g. { 0: {'train':DL , 'test':DL } ... }
         dataloader_dict = {}
+        user_id_df_dict = {}
         user_id = 0
         for df in dfs:
             df = shuffle(df)
@@ -140,6 +126,8 @@ class DatasetSplitByDirichletPartition():
             train_y = df.iloc[0:train_size, row_num - 1:row_num].values
             val_x = df.iloc[train_size + 1:col_num, 0:row_num - 1].values
             val_y = df.iloc[train_size + 1:col_num, row_num - 1:row_num].values
+            df_dict = {'train': {'x':pd.DataFrame(train_x),'y':pd.DataFrame(train_y)},
+                       'test':  {'x':pd.DataFrame(train_x),'y':pd.DataFrame(train_y)}}
             train_x = torch.tensor(train_x, dtype=torch.float32)
             train_y = torch.tensor(ConvertToOneHotKey(train_y))
             val_x = torch.tensor(val_x, dtype=torch.float32)
@@ -147,9 +135,11 @@ class DatasetSplitByDirichletPartition():
             train_val_dataloader = {'train':TheDataset(train_x,train_y),
                                     'test':TheDataset(val_x,val_y)}
             dataloader_dict[user_id] = train_val_dataloader
+            user_id_df_dict[user_id] = df_dict
             user_id += 1
 
         self.dataloader_dict = dataloader_dict
+        self.user_id_df_dict = user_id_df_dict
 
     def get_train_dataset_proportions(self):
         dataset_proportions = []
@@ -172,13 +162,28 @@ class DatasetSplitByDirichletPartition():
     def get_complete_dataset_size(self):
         return self.__dataset_size
 
+    def save_users_df_as_csv(self, path):
+        for user_id, df_dict in self.user_id_df_dict.items():
+            X_train, y_train = df_dict['train']['x'], df_dict['train']['y']
+            X_test, y_test = df_dict['test']['x'], df_dict['test']['y']
+            csv_name = "/user_"+str(user_id)+"_"
+            X_train.to_csv(path+csv_name+'X_train.csv', index=False)
+            X_test.to_csv(path+csv_name+'X_test.csv', index=False)
+            y_train.to_csv(path+csv_name+'y_train.csv', index=False)
+            y_test.to_csv(path+csv_name+'y_test.csv', index=False)
+
 if __name__ == '__main__':
+    user_num = 5
+    alpha = 0.02
     file_path = '../data/BankChurners_normalized_standardized.csv'
     spliter = DatasetSplitByDirichletPartition(file_path=file_path,
-                                               alpha=1,
-                                               user_num=2,
-                                               train_ratio=.8)
+                                               alpha=alpha,
+                                               user_num=user_num,
+                                               train_ratio=.7)
     dataset_dict = spliter.get_dataset_dict()
     proportions = spliter.get_train_dataset_proportions()
+    label_partition_dict = spliter.get_label_partition_dict()
+
+    spliter.save_users_df_as_csv(path="../data/non_iid_data")
     print("End")
 

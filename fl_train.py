@@ -15,9 +15,6 @@ from model.modelFcNetRegression import FcNetRegression
 from trainer.trainer import local_trainer, inference
 
 def average_weights(w):
-    """
-    Returns the average of the weights.
-    """
     w_avg = copy.deepcopy(w[0])
     for key in w_avg.keys():
         for i in range(0, len(w)):
@@ -28,12 +25,35 @@ def average_weights(w):
 def weighted_average_weights(w, dataset_proportions):
     w_avg = copy.deepcopy(w[0])
     for key in w_avg.keys():
-        for i in range(1, len(w)):
+        for i in range(0, len(w)):
             w_avg[key] += torch.mul(w[i][key], dataset_proportions[i])
         w_avg[key] = torch.div(w_avg[key].float(), len(w))
     return w_avg
 
-def plot_partitions(user_num, label_partition_dict, alpha):
+
+def ratio_of_sign(w_global, w_local):
+    w_global_copy = copy.deepcopy(w_global)
+    w_local_copy = copy.deepcopy(w_local)
+    sign = {}
+    sign_total = 0
+    for key in w_global_copy.keys():
+        delta = torch.add(w_local_copy[key], -w_global_copy[key])
+        delta = torch.flatten(delta)
+        sign[key] = 0
+        for element in delta.numpy():
+            if element > 0 :
+                    sign[key] += 1
+                    sign_total += 1
+            if element < 0 :
+                    sign[key] -= 1
+                    sign_total -= 1
+    sign['total'] = sign_total
+    return sign
+
+def prevent_param_cancellation():
+    return
+
+def plot_partitions(user_num, label_partition_dict, alpha, path=""):
     user_partitions_dict = {}
     list = []
     for user_id in range(user_num):
@@ -47,7 +67,7 @@ def plot_partitions(user_num, label_partition_dict, alpha):
     title = "Alpha="+ str(alpha) + ",User = "+ str(user_num)
     plt.title(title)
     # plt.show()
-    plt.savefig(title+".jpg")
+    plt.savefig(path + title+".jpg")
     plt.close()
     return
 
@@ -91,13 +111,9 @@ def train(alpha, user_num, global_rounds, local_epoches, batch_size, log = True)
     plot_partitions(user_num=user_num, label_partition_dict=label_partition_dict,
                     alpha=alpha)
     global_acc_loss_dict = {}
-    # global_acc_loss_dict[0] = {'acc': 0, 'loss': 0}
     for round_idx in range(global_rounds):
         local_weights = []
         local_losses = []
-        global_acc = []
-
-
         for user_index in range(user_num):
             local_dataset_size = dataset_dict[user_index]['train'].X_.shape[0]
             if log == True:
@@ -112,6 +128,14 @@ def train(alpha, user_num, global_rounds, local_epoches, batch_size, log = True)
             local_weights.append(copy.deepcopy(model_weights))
             local_losses.append(loss)
 
+        initial_global_weight = global_model.state_dict()
+        i = 0
+        for local_weight in local_weights:
+            sign = \
+                ratio_of_sign(w_global=initial_global_weight,
+                          w_local=local_weight)
+            print( "Sign Number of User ", i, " : ", sign )
+            i+=1
         # global_weight = average_weights(local_weights)
         global_weight = weighted_average_weights(local_weights, dataset_proportions)
         global_model.load_state_dict(global_weight)
@@ -157,9 +181,6 @@ def train(alpha, user_num, global_rounds, local_epoches, batch_size, log = True)
                     alpha=alpha)
 
 if __name__ == '__main__':
-    # for i in range(10):
-    #     print("Trial Number {:}".format(i))
-    #     train(log=False)
     train(  alpha = 0.02,
             user_num = 5,
             global_rounds = 30,
