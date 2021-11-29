@@ -200,7 +200,7 @@ def train(spliter, alpha, user_num, global_rounds, local_epoches, batch_size, rl
                     alpha=alpha)
 
 if __name__ == '__main__':
-    alpha = 0.02
+    alpha = 0.1
     user_num = 5
     global_rounds = 30
     local_epoches = 5
