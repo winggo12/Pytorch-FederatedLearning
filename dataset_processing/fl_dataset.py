@@ -3,9 +3,12 @@ import pandas as pd
 import math
 import numpy as np
 from sklearn.utils import shuffle
+import sys
 import torch
 from torch.utils.data import Dataset
+
 from config import config
+from dataset_preprocessing.dataset_preprocess import dataset_preprocess
 
 #Returning a numpy array of one-hot-key
 def ConvertToOneHotKey(y):
@@ -17,7 +20,7 @@ def ConvertToOneHotKey(y):
     y_one_hot_key = []
     for element in y:
         template = one_hot_key.copy().tolist()
-        id = element[0] - 1
+        id = int(element[0] - 1)
         template[id] = 1
         y_one_hot_key.append(template)
 
@@ -45,7 +48,8 @@ class DatasetSplitByDirichletPartition():
     def __init__(self, file_path, alpha, user_num, train_ratio):
         if train_ratio<=0 or train_ratio>1:
             raise NameError("Ratio is not in correct range")
-        df = pd.read_csv(file_path)
+        # df = pd.read_csv(file_path)
+        df = dataset_preprocess(file_path)
         df_new = df.sort_values(by=['CreditLevel'])
         row_num, col_num = df.shape[1], df.shape[0]
         self.__dataset_size = col_num
@@ -93,11 +97,15 @@ class DatasetSplitByDirichletPartition():
         label_id_dict_of_user = {}
         # user_id = 0
         for user_id in range(user_num):
+            user_data_size = 0
             for label, num in label_num_dict.items():
                 number = num * label_partition_dict[label][user_id]
+                user_data_size += int(number)
                 id_list = [label_id_dict[label].pop(0) for idx in range(int(number))]
                 label_id_dict_of_user[label] = id_list
-
+            if user_data_size <= 0:
+                print("A User Cannot get any data due to a low alpha value, please run again...")
+                sys.exit("Error of Dirichlet Distribution")
             # List of label_id_dict for the users
             label_id_dict_of_users[user_id] = label_id_dict_of_user
             label_id_dict_of_user = {}

@@ -99,7 +99,7 @@ def plot_acc_loss(acc_loss_dict, user_num, alpha):
     plt.close()
 
 
-def train(spliter, alpha, user_num, global_rounds, local_epoches, batch_size, log = True):
+def train(spliter, alpha, user_num, global_rounds, local_epoches, batch_size, rlr = False,  log = True):
     avg_global_test_acc , avg_global_test_loss = 0 , 0
     dataset_dict = spliter.get_dataset_dict()
     label_partition_dict = spliter.get_label_partition_dict()
@@ -139,20 +139,25 @@ def train(spliter, alpha, user_num, global_rounds, local_epoches, batch_size, lo
 
         model_params_num = sum(p.numel() for p in global_model.parameters()
                                if p.requires_grad)
-        # threshold = int(model_params_num * 0.05)
-        threshold = 30
-        print("Sign Number's Threshold : ", threshold)
-        new_local_weights = []
-        new_dataset_proportions = []
-        for user_index, sign_dict in user_index_sign_dict.items():
-            if abs(sign_dict['total']) > threshold :
-                new_local_weights.append(local_weights[user_index])
-                new_dataset_proportions.append(dataset_proportions[user_index])
 
-        if len(new_local_weights) != 0:
-            global_weight = weighted_average_weights(new_local_weights, new_dataset_proportions)
+        #Use Robust Learning Rate if true
+        if rlr == True:
+            # threshold = int(model_params_num * 0.05)
+            threshold = 30
+            print("Sign Number's Threshold : ", threshold)
+            new_local_weights = []
+            new_dataset_proportions = []
+            for user_index, sign_dict in user_index_sign_dict.items():
+                if abs(sign_dict['total']) > threshold :
+                    new_local_weights.append(local_weights[user_index])
+                    new_dataset_proportions.append(dataset_proportions[user_index])
+
+            if len(new_local_weights) != 0:
+                global_weight = weighted_average_weights(new_local_weights, new_dataset_proportions)
+            else:
+                global_weight = initial_global_weight
         else:
-            global_weight = initial_global_weight
+            global_weight = weighted_average_weights(local_weights, dataset_proportions)
 
         global_model.load_state_dict(global_weight)
 
@@ -214,4 +219,5 @@ if __name__ == '__main__':
             global_rounds = global_rounds,
             local_epoches = local_epoches,
             batch_size = batch_size,
+            rlr = True,
             log=True)

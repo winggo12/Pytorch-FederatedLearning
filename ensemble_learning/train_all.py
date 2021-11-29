@@ -1,4 +1,5 @@
 import pandas as pd
+from config import config
 from sklearn.model_selection import train_test_split
 import torch
 from decisiontree import dt_train
@@ -7,11 +8,15 @@ from lda import lda_train
 from xgb import xgbc_train
 from train import train_nn
 from dataset_processing.dataset import TheDatasetByDataframe
+from dataset_preprocessing.dataset_preprocess import dataset_preprocess
 
-df_ts = pd.read_csv('../data/BankChurners_normalized_standardized.csv')
+# df_ts = pd.read_csv('../data/BankChurners_normalized_standardized.csv')
+df_ts = dataset_preprocess("."+config.data_path)
 
-inputs = df_ts.iloc[0:,0:10]
-labels = df_ts.iloc[0:,10:11]
+row_num, col_num = df_ts.shape[1], df_ts.shape[0]
+
+inputs = df_ts.iloc[0:,0:row_num-1]
+labels = df_ts.iloc[0:,row_num-1:row_num]
 
 X_train, X_test, y_train, y_test = train_test_split(inputs, labels, test_size=0.3,random_state=0)
 

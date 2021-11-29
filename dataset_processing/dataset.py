@@ -5,6 +5,7 @@ import torch
 from torch.utils.data import Dataset
 
 from config import config
+from dataset_preprocessing.dataset_preprocess import dataset_preprocess
 
 #Returning a numpy array of one-hot-key
 def ConvertToOneHotKey(y):
@@ -16,7 +17,7 @@ def ConvertToOneHotKey(y):
     y_one_hot_key = []
     for element in y:
         template = one_hot_key.copy().tolist()
-        id = element[0] - 1
+        id = int(element[0] - 1)
         template[id] = 1
         y_one_hot_key.append(template)
 
@@ -28,7 +29,8 @@ class TheDataset(Dataset):
     def __init__(self, file_path, train_or_val, train_ratio):
         if train_ratio<=0 or train_ratio>1:
             raise NameError("Ratio is not in correct range")
-        df = pd.read_csv(file_path)
+        # df = pd.read_csv(file_path)
+        df = dataset_preprocess(file_path)
         row_num, col_num = df.shape[1], df.shape[0]
         train_size = round(col_num * (train_ratio))
         self.train_size = train_size
