@@ -10,8 +10,9 @@ if __name__ == '__main__':
                                                user_num=user_num,
                                                train_ratio=.7)
     dataset_dict = spliter.get_dataset_dict()
-    proportions = spliter.get_train_dataset_proportions()
     label_partition_dict = spliter.get_label_partition_dict()
+    dataset_size = spliter.get_complete_dataset_size()
+    dataset_proportions = spliter.get_train_dataset_proportions()
 
     spliter.save_users_df_as_csv(path="./")
     plot_partitions(user_num=user_num,

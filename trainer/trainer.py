@@ -59,7 +59,8 @@ def inference(dataset, model, batch_size, log=True):
 
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
     loss_func = nn.CrossEntropyLoss()
-    model.train()
+    # model.train()
+    model.eval()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     test_preds, test_ground_truth = np.asarray([]), np.asarray([])
 
@@ -68,8 +69,8 @@ def inference(dataset, model, batch_size, log=True):
         outputs = model(inputs)
         loss = loss_func(outputs, labels)
 
-        loss.backward()
-        optimizer.step()
+        # loss.backward()
+        # optimizer.step()
         _, preds = torch.max(outputs, 1)
         _, ground_truth = torch.max(labels, 1)
         running_loss += loss.item() * inputs.size(0)

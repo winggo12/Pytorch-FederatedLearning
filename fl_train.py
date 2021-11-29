@@ -32,10 +32,9 @@ def weighted_average_weights(w, dataset_proportions):
 
 
 def ratio_of_sign(w_global, w_local):
-    w_global_copy = copy.deepcopy(w_global)
-    w_local_copy = copy.deepcopy(w_local)
-    sign = {}
-    sign_total = 0
+    w_global_copy , w_local_copy = \
+        copy.deepcopy(w_global) , copy.deepcopy(w_local)
+    sign , sign_total= {} , 0
     for key in w_global_copy.keys():
         delta = torch.add(w_local_copy[key], -w_global_copy[key])
         delta = torch.flatten(delta)
@@ -48,6 +47,10 @@ def ratio_of_sign(w_global, w_local):
                     sign[key] -= 1
                     sign_total -= 1
     sign['total'] = sign_total
+    # if abs(sign['total']) < 5:
+    #     for key in w_global_copy.keys():
+    #         delta = torch.add(w_local_copy[key], -w_global_copy[key])
+    #         w_local[key] = torch.add(w_global_copy[key], delta)
     return sign
 
 def prevent_param_cancellation():
@@ -96,13 +99,8 @@ def plot_acc_loss(acc_loss_dict, user_num, alpha):
     plt.close()
 
 
-def train(alpha, user_num, global_rounds, local_epoches, batch_size, log = True):
+def train(spliter, alpha, user_num, global_rounds, local_epoches, batch_size, log = True):
     avg_global_test_acc , avg_global_test_loss = 0 , 0
-
-    spliter = DatasetSplitByDirichletPartition(file_path=config.data_path,
-                                               alpha=alpha,
-                                               user_num=user_num,
-                                               train_ratio=.7)
     dataset_dict = spliter.get_dataset_dict()
     label_partition_dict = spliter.get_label_partition_dict()
     dataset_size = spliter.get_complete_dataset_size()
@@ -129,18 +127,34 @@ def train(alpha, user_num, global_rounds, local_epoches, batch_size, log = True)
             local_losses.append(loss)
 
         initial_global_weight = global_model.state_dict()
+        user_index_sign_dict = {}
         i = 0
         for local_weight in local_weights:
             sign = \
                 ratio_of_sign(w_global=initial_global_weight,
                           w_local=local_weight)
+            user_index_sign_dict[i]=sign
             print( "Sign Number of User ", i, " : ", sign )
             i+=1
-        # global_weight = average_weights(local_weights)
-        global_weight = weighted_average_weights(local_weights, dataset_proportions)
+
+        model_params_num = sum(p.numel() for p in global_model.parameters()
+                               if p.requires_grad)
+        # threshold = int(model_params_num * 0.05)
+        threshold = 30
+        print("Sign Number's Threshold : ", threshold)
+        new_local_weights = []
+        new_dataset_proportions = []
+        for user_index, sign_dict in user_index_sign_dict.items():
+            if abs(sign_dict['total']) > threshold :
+                new_local_weights.append(local_weights[user_index])
+                new_dataset_proportions.append(dataset_proportions[user_index])
+
+        if len(new_local_weights) != 0:
+            global_weight = weighted_average_weights(new_local_weights, new_dataset_proportions)
+        else:
+            global_weight = initial_global_weight
+
         global_model.load_state_dict(global_weight)
-
-
 
         test_acc, test_loss, test_per_class_acc = 0 , 0 , []
 
@@ -181,9 +195,23 @@ def train(alpha, user_num, global_rounds, local_epoches, batch_size, log = True)
                     alpha=alpha)
 
 if __name__ == '__main__':
-    train(  alpha = 0.02,
-            user_num = 5,
-            global_rounds = 30,
-            local_epoches = 5,
-            batch_size = 64,
+    alpha = 0.02
+    user_num = 5
+    global_rounds = 30
+    local_epoches = 5
+    batch_size = 64
+
+    spliter = \
+    DatasetSplitByDirichletPartition(file_path=config.data_path,
+                                       alpha=alpha,
+                                       user_num=user_num,
+                                       train_ratio=.7)
+
+    train(
+            spliter = spliter,
+            alpha = alpha,
+            user_num = user_num,
+            global_rounds = global_rounds,
+            local_epoches = local_epoches,
+            batch_size = batch_size,
             log=True)
