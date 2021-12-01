@@ -30,7 +30,6 @@ def weighted_average_weights(w, dataset_proportions):
         w_avg[key] = torch.div(w_avg[key].float(), len(w))
     return w_avg
 
-
 def ratio_of_sign(w_global, w_local):
     w_global_copy , w_local_copy = \
         copy.deepcopy(w_global) , copy.deepcopy(w_local)
@@ -47,16 +46,10 @@ def ratio_of_sign(w_global, w_local):
                     sign[key] -= 1
                     sign_total -= 1
     sign['total'] = sign_total
-    # if abs(sign['total']) < 5:
-    #     for key in w_global_copy.keys():
-    #         delta = torch.add(w_local_copy[key], -w_global_copy[key])
-    #         w_local[key] = torch.add(w_global_copy[key], delta)
+
     return sign
 
-def prevent_param_cancellation():
-    return
-
-def plot_partitions(user_num, label_partition_dict, alpha, path=""):
+def plot_partitions(user_num, label_partition_dict, alpha, path="", rlr=False):
     user_partitions_dict = {}
     list = []
     for user_id in range(user_num):
@@ -67,23 +60,27 @@ def plot_partitions(user_num, label_partition_dict, alpha, path=""):
 
     plotdata = pd.DataFrame(label_partition_dict)
     plotdata.plot(kind='bar', stacked=True)
-    title = "Alpha="+ str(alpha) + ",User = "+ str(user_num)
+    rlr_info = ""
+    if rlr == True : rlr_info = " using RLR "
+    title = "Alpha="+ str(alpha) + ",User = "+ str(user_num)+rlr_info
     plt.title(title)
     # plt.show()
     plt.savefig(path + title+".jpg")
     plt.close()
     return
 
-def plot_acc_loss(acc_loss_dict, user_num, alpha):
-    plotdata = pd.DataFrame(acc_loss_dict)
+def plot_global_acc_loss(global_acc_loss_dict, user_num, alpha, rlr=False):
+    plotdata = pd.DataFrame(global_acc_loss_dict)
     acc_list, loss_list , epoches = [], [], []
-    for epoch, dict in acc_loss_dict.items():
+    for epoch, dict in global_acc_loss_dict.items():
         epoches.append(epoch)
         acc_list.append(dict['acc'])
         loss_list.append(dict['loss'])
     plt.plot(epoches, acc_list)
+    rlr_info = ""
+    if rlr == True : rlr_info = " using RLR "
     info = "Alpha="+ str(alpha) + ",User = "+ str(user_num)
-    title = "Test Accuracy of Federated Learning "+info
+    title = "Test Accuracy of Federated Learning "+ rlr_info +info
     plt.title(title)
     plt.xlabel("Epoch")
     plt.ylabel("Acc")
@@ -91,12 +88,33 @@ def plot_acc_loss(acc_loss_dict, user_num, alpha):
     plt.close()
 
     plt.plot(epoches, loss_list)
-    title = "Test Loss of Federated Learning "+info
+    title = "Test Loss of Federated Learning "+ rlr_info +info
     plt.xlabel("Epoch")
     plt.ylabel("Acc")
     plt.title(title)
     plt.savefig(title+".jpg")
     plt.close()
+
+def plot_local_acc_loss(local_acc_loss_dict, user_num, alpha, rlr=False):
+    # plt_acc, plt_loss = plt.figure(1), plt.figure(2)
+    for item in ["acc", "loss"]:
+        for user, acc_loss_dict in local_acc_loss_dict.items():
+            for key, list in acc_loss_dict.items():
+                epoches = [i for i in range(len(list))]
+                plt_label = "user-"+str(user)+"-"+key
+                if key == item : plt.plot(epoches, list, label=plt_label)
+                # if key == "loss": plt_loss.plot(epoches, list, label=plt_label)
+
+        plt.legend()
+        rlr_info = ""
+        if rlr == True: rlr_info = " using RLR "
+        info = "Alpha="+ str(alpha) + ",User = "+ str(user_num)
+        title = "Local Trainer "+ item + rlr_info + " " +info
+        plt.title(title)
+        plt.xlabel("Epoch")
+        plt.ylabel(item)
+        plt.savefig(title+".jpg")
+        plt.close()
 
 
 def train(spliter, alpha, user_num, global_rounds, local_epoches, batch_size, rlr = False,  log = True):
@@ -106,25 +124,30 @@ def train(spliter, alpha, user_num, global_rounds, local_epoches, batch_size, rl
     dataset_size = spliter.get_complete_dataset_size()
     dataset_proportions = spliter.get_train_dataset_proportions()
     global_model = FcNet()
-    plot_partitions(user_num=user_num, label_partition_dict=label_partition_dict,
-                    alpha=alpha)
+    # plot_partitions(user_num=user_num, label_partition_dict=label_partition_dict,
+    #                 alpha=alpha)
     global_acc_loss_dict = {}
+    local_acc_loss_dict = {}
+
+    for user_index in range(user_num):
+        local_acc_loss_dict[user_index] = {"acc": [], "loss": []}
+
     for round_idx in range(global_rounds):
         local_weights = []
-        local_losses = []
         for user_index in range(user_num):
             local_dataset_size = dataset_dict[user_index]['train'].X_.shape[0]
             if log == True:
                 print("_________________Local Trainer w/ size: ", local_dataset_size, "/",
                       dataset_size, "_________________________")
-            model_weights, loss = local_trainer(dataset=dataset_dict[user_index]['train'],
+            model_weights, acc, loss = local_trainer(dataset=dataset_dict[user_index]['train'],
                                                 model=copy.deepcopy(global_model),
                                                 global_round=round_idx,
                                                 local_epoch=local_epoches,
                                                 batch_size = batch_size,
                                                 log = log)
             local_weights.append(copy.deepcopy(model_weights))
-            local_losses.append(loss)
+            local_acc_loss_dict[user_index]["acc"].append(acc)
+            local_acc_loss_dict[user_index]["loss"].append(loss)
 
         initial_global_weight = global_model.state_dict()
         user_index_sign_dict = {}
@@ -194,10 +217,19 @@ def train(spliter, alpha, user_num, global_rounds, local_epoches, batch_size, rl
     print('Final global accuracy is {:.3}%, and the Final global loss is {:.3}.'.format(test_acc*100,test_loss))
     print('Average global accuracy is {:.3}%, and the Average global loss is {:.3}.'.format(avg_global_test_acc,avg_global_test_loss))
     print("________________________________________________________")
-    # plot_partitions(user_num=user_num, label_partition_dict=label_partition_dict)
-    plot_acc_loss(  acc_loss_dict=global_acc_loss_dict,
-                    user_num=user_num,
-                    alpha=alpha)
+    plot_partitions(user_num=user_num,
+                    label_partition_dict=label_partition_dict,
+                    alpha=alpha,
+                    rlr=rlr)
+    plot_global_acc_loss(global_acc_loss_dict=global_acc_loss_dict,
+                         user_num= user_num,
+                         alpha=alpha,
+                         rlr=rlr)
+
+    plot_local_acc_loss(local_acc_loss_dict=local_acc_loss_dict,
+                        user_num= user_num,
+                        alpha= alpha,
+                        rlr=rlr)
 
 if __name__ == '__main__':
     alpha = 0.1
@@ -219,5 +251,5 @@ if __name__ == '__main__':
             global_rounds = global_rounds,
             local_epoches = local_epoches,
             batch_size = batch_size,
-            rlr = True,
+            rlr = False,
             log=True)

@@ -27,7 +27,7 @@ def ConvertToOneHotKey(y):
 
 class TheDataset(Dataset):
     def __init__(self, file_path, train_or_val, train_ratio):
-        if train_ratio<=0 or train_ratio>1:
+        if train_ratio<0 or train_ratio>1:
             raise NameError("Ratio is not in correct range")
         # df = pd.read_csv(file_path)
         df = dataset_preprocess(file_path)
@@ -35,12 +35,20 @@ class TheDataset(Dataset):
         train_size = round(col_num * (train_ratio))
         self.train_size = train_size
         # Handling Input Data and GroundTruth
-        if train_or_val == 'train' or train_ratio >= 1:
+        if train_or_val == 'train':
             x = df.iloc[0:train_size, 0:row_num-1].values
             y = df.iloc[0:train_size, row_num - 1:row_num].values
-        else:
+        elif train_or_val == 'test':
             x = df.iloc[train_size+1:col_num, 0:row_num-1].values
             y = df.iloc[train_size+1:col_num, row_num - 1:row_num].values
+        elif train_or_val == 'all':
+            x = df.iloc[0:col_num, 0:row_num-1].values
+            y = df.iloc[0:col_num, row_num - 1:row_num].values
+        elif train_or_val == 'no_label':
+            x = df.iloc[0:col_num, 0:row_num-1].values
+            y = []
+            for i in range(col_num): y.append([1])
+            y = np.asarray(y)
 
         self.X_ = torch.tensor(x, dtype=torch.float32)
 

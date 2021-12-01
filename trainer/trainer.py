@@ -7,7 +7,7 @@ def local_trainer(dataset, model, global_round, local_epoch, batch_size, log=Tru
     iteration = 0
     running_corrects, running_corrects_per_itr = 0 , 0
     running_loss, running_loss_per_itr = 0 , 0
-
+    final_acc, final_loss = 0, 0
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=True)
     loss_func = nn.CrossEntropyLoss()
     model.train()
@@ -40,6 +40,7 @@ def local_trainer(dataset, model, global_round, local_epoch, batch_size, log=Tru
                 loss = running_loss_per_itr / (report_iterations * batch_size)
                 running_corrects_per_itr = 0
                 running_loss_per_itr = 0
+                final_acc = acc
                 if log == True:
                     print('Stage: Train  Global Round {} Iteration: {} Acc: {}  Loss: {}'.format(global_round,iteration,acc,loss))
             iteration += 1
@@ -50,7 +51,7 @@ def local_trainer(dataset, model, global_round, local_epoch, batch_size, log=Tru
     # print("Per-class acc: ", per_class_acc)
     final_loss = running_loss/(local_epoch*dataset_size)
 
-    return model.state_dict(), final_loss
+    return model.state_dict(), final_acc, final_loss
 
 def inference(dataset, model, batch_size, log=True):
     iteration = 0
