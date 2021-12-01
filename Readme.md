@@ -42,16 +42,15 @@ To run the repo:
    ```
    run ensemble_learning/train_all.py
    ```
-    
+       
+   The ensemble learning method is defined below: 
+   ![text](/ensemble_learning_result/el_equation.png)
    
-## 2. For training with ensemble learning
+## 2. For training with Federated Learning
 
    ```
    run fl_train.py
    ```
-   
-   The ensemble learning method is defined below: 
-   ![text](/ensemble_learning_result/el_equation.png)
    
    The results will be saved as diagram in names like "Test Accuracy of Federated Learning Alpha=0.02,User = 5.jpg" and "Test Loss of Federated Learning Alpha=0.02,User = 5.jpg"
    
