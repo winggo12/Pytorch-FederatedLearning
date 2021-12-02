@@ -35,7 +35,7 @@ To run the repo:
    run ensemble_learning/test_all.py
    ```
    
-   ![text](/ensemble_learning_result/EnsembleLearningResult.png) ![text](/ensemble_learning_result/NeuralNetworkResult.png)
+   <img src= "/ensemble_learning_result/EnsembleLearningResult.png" width="400" height="100"><img src= "/ensemble_learning_result/NeuralNetworkResult.png" width="400" height="100">
    
    
    ## b) For training the ensemble learning's models, 
@@ -44,7 +44,8 @@ To run the repo:
    ```
        
    The ensemble learning method is defined below: 
-   ![text](/ensemble_learning_result/el_equation.png)
+   
+   <img src= "/ensemble_learning_result/el_equation.png" width="600" height="200">
    
 ## 2. For training with Federated Learning
 
@@ -55,6 +56,9 @@ To run the repo:
    The results will be saved as diagram in names like "Test Accuracy of Federated Learning Alpha=0.02,User = 5.jpg" and "Test Loss of Federated Learning Alpha=0.02,User = 5.jpg"
    
    The dataset distribution will be named as name like "Alpha=0.02,User = 5.jpg" 
+   
+   ## Result Showcase (Local/Global Trainer):
+   <img src= "/archive/report_materials/your_student_ID.png" width="800" height="400">
    
 ## To edit the hyperparameter, go to fl_train.py 
 
